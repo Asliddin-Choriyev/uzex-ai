@@ -16,14 +16,31 @@ DATA_DIR = Path(__file__).parent.parent / "uzex_spot_data"
 
 
 class UzexDatabase:
-    def __init__(self, db_path: Path = DB_PATH):
-        self.db_path = db_path
+    def __init__(self, db_path: Path = None):
+        if db_path is not None:
+            self.db_path = Path(db_path)
+        else:
+            candidates = [
+                Path(__file__).resolve().parent.parent / "uzex.duckdb",
+                Path("uzex.duckdb").resolve(),
+                Path("/var/task/uzex.duckdb"),
+            ]
+            self.db_path = candidates[0]
+            for c in candidates:
+                if c.exists():
+                    self.db_path = c
+                    break
+
         if not self.db_path.exists():
-            self._build_database()
+            # If on read-only system like AWS Lambda / Vercel, build to /tmp
+            if not os.access(self.db_path.parent, os.W_OK):
+                self.db_path = Path("/tmp/uzex.duckdb")
+            if not self.db_path.exists():
+                self._build_database()
         
         # Connect in read-only mode so concurrent queries never lock
         self.con = duckdb.connect(str(self.db_path), read_only=True)
-        logger.info("Connected to UZEX DuckDB database (read-only).")
+        logger.info(f"Connected to UZEX DuckDB at {self.db_path} (read-only).")
 
     def _build_database(self):
         """Build the database from CSVs if not present."""

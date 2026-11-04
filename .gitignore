@@ -9,7 +9,6 @@ __pycache__/
 *.pyc
 
 # Local databases & artifacts
-*.duckdb
 *.duckdb.wal
 *.log
 *.tmp
