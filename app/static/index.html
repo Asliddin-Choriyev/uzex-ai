@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UZEX AI Agent — O'zbekiston Tovar-Xomashyo Birjasi Tahlili</title>
+  
+  <!-- Fonts & Markdown Parser -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <style>
+    /* ===================== DESIGN TOKENS ===================== */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-body:      #070b12;
+      --bg-surface:   rgba(15, 23, 42, 0.75);
+      --bg-card:      rgba(17, 27, 49, 0.65);
+      --bg-input:     rgba(13, 20, 36, 0.85);
+      
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-glow:   rgba(16, 185, 129, 0.35);
+
+      --emerald:      #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.25);
+      --cyan:         #06b6d4;
+      --cyan-glow:    rgba(6, 182, 212, 0.25);
+
+      --text-main:    #f8fafc;
+      --text-muted:   #94a3b8;
+      --text-dark:    #64748b;
+
+      --radius-sm:    8px;
+      --radius-md:    12px;
+      --radius-lg:    18px;
+      --radius-xl:    24px;
+
+      --font-sans:    'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono:    'JetBrains Mono', monospace;
+    }
+
+    html, body {
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-body);
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(14, 165, 233, 0.12) 0%, transparent 50%),
+        radial-gradient(circle at 0% 100%, rgba(16, 185, 129, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 100% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===================== HEADER ===================== */
+    header {
+      background: rgba(7, 11, 18, 0.85);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      flex-shrink: 0;
+      z-index: 100;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+    }
+
+    .logo-badge {
+      background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+      color: #041017;
+      font-weight: 800;
+      font-size: 13px;
+      padding: 5px 11px;
+      border-radius: var(--radius-sm);
+      letter-spacing: 1px;
+      box-shadow: 0 0 16px var(--emerald-glow);
+    }
+
+    .logo-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-title span {
+      background: linear-gradient(90deg, #10b981, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .online-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.08);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #34d399;
+    }
+
+    .pulse-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #10b981;
+      box-shadow: 0 0 8px #10b981;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .lang-pill {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    /* ===================== LAYOUT ===================== */
+    .app-layout {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 64px);
+      max-width: 1560px;
+      margin: 0 auto;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    /* ===================== SIDEBAR ===================== */
+    .sidebar {
+      width: 330px;
+      flex-shrink: 0;
+      height: 100%;
+      overflow-y: auto;
+      padding: 18px 16px;
+      border-right: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      background: rgba(7, 11, 18, 0.4);
+    }
+
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+      transition: border-color 0.25s;
+    }
+
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+
+    .card-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .stat-box {
+      background: var(--bg-input);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      border: 1px solid var(--border-subtle);
+      transition: all 0.25s;
+    }
+
+    .stat-box:hover {
+      border-color: var(--border-glow);
+    }
+
+    .stat-value {
+      font-size: 20px;
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: #38bdf8;
+      line-height: 1.1;
+      letter-spacing: -0.5px;
+    }
+
+    .stat-value.primary {
+      color: #34d399;
+    }
+
+    .stat-label {
+      font-size: 10.5px;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-top: 5px;
+    }
+
+    /* Refresh Button */
+    .btn-refresh {
+      background: rgba(6, 182, 212, 0.1);
+      border: 1px solid rgba(6, 182, 212, 0.3);
+      color: #38bdf8;
+      font-size: 10.5px;
+      font-weight: 700;
+      font-family: var(--font-sans);
+      border-radius: var(--radius-sm);
+      padding: 4px 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-refresh:hover {
+      background: rgba(6, 182, 212, 0.2);
+      border-color: #38bdf8;
+      transform: translateY(-1px);
+    }
+
+    /* Dynamic Questions List */
+    .example-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .example-btn {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 12px;
+      font-size: 12px;
+      font-weight: 500;
+      font-family: var(--font-sans);
+      color: #cbd5e1;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.2s ease;
+      line-height: 1.4;
+      display: block;
+    }
+
+    .example-btn:hover {
+      border-color: rgba(56, 189, 248, 0.4);
+      color: #f8fafc;
+      background: rgba(14, 165, 233, 0.08);
+      transform: translateX(3px);
+    }
+
+    .lang-tag {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 800;
+      padding: 2px 5px;
+      border-radius: 4px;
+      margin-right: 6px;
+      letter-spacing: 0.5px;
+    }
+
+    .lang-tag.uz {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .lang-tag.ru {
+      background: rgba(6, 182, 212, 0.15);
+      color: #38bdf8;
+      border: 1px solid rgba(6, 182, 212, 0.3);
+    }
+
+    /* Capabilities Chips */
+    .chip-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+
+    .chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-subtle);
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 10.5px;
+      color: var(--text-muted);
+    }
+
+    .sidebar-footer {
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 11px;
+      color: var(--text-dark);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* ===================== CHAT AREA (VERTICAL SPLIT) ===================== */
+    .chat-area {
+      flex: 1;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      min-width: 0;
+      background: rgba(7, 11, 18, 0.2);
+      position: relative;
+    }
+
+    /* Scrollable message viewport */
+    .messages-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 32px 20px 32px;
+      scroll-behavior: smooth;
+    }
+
+    .messages {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      max-width: 940px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .message {
+      display: flex;
+      gap: 16px;
+      animation: messageAppear 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes messageAppear {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-md);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+      font-weight: 700;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .msg-avatar.user {
+      background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%);
+      color: #fff;
+    }
+
+    .msg-avatar.bot {
+      background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+      color: #041017;
+      box-shadow: 0 0 16px var(--emerald-glow);
+    }
+
+    .msg-bubble {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .msg-name {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .msg-content {
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 18px 22px;
+      font-size: 14.5px;
+      line-height: 1.7;
+      word-break: break-word;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .message.user .msg-content {
+      background: rgba(30, 41, 59, 0.7);
+      border-color: rgba(99, 102, 241, 0.3);
+      color: #f1f5f9;
+    }
+
+    .message.bot .msg-content {
+      border-left: 3px solid #10b981;
+    }
+
+    /* Markdown Elements Styling */
+    .msg-content p {
+      margin-bottom: 12px;
+    }
+    .msg-content p:last-child {
+      margin-bottom: 0;
+    }
+
+    .msg-content table {
+      border-collapse: separate;
+      border-spacing: 0;
+      width: 100%;
+      margin: 16px 0;
+      font-size: 13px;
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      background: rgba(13, 20, 36, 0.6);
+    }
+
+    .msg-content th, .msg-content td {
+      padding: 10px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .msg-content th {
+      background: rgba(30, 41, 59, 0.7);
+      color: #38bdf8;
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .msg-content tr:last-child td {
+      border-bottom: none;
+    }
+
+    .msg-content tr:nth-child(even) {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .msg-content ul, .msg-content ol {
+      margin: 10px 0 14px 22px;
+    }
+
+    .msg-content li {
+      margin-bottom: 6px;
+    }
+
+    .msg-content strong {
+      color: #fff;
+      font-weight: 700;
+    }
+
+    /* Typing Indicator */
+    .typing-indicator {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 14px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      border-left: 3px solid #06b6d4;
+    }
+
+    .typing-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #38bdf8;
+      animation: bounce 1.4s infinite cubic-bezier(0.45, 0, 0.55, 1);
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-7px); }
+    }
+
+    /* Welcome Hero */
+    .welcome {
+      text-align: center;
+      padding: 44px 24px;
+      background: radial-gradient(circle at 50% 30%, rgba(16, 185, 129, 0.08) 0%, transparent 70%);
+      border: 1px dashed var(--border-subtle);
+      border-radius: var(--radius-xl);
+      margin-top: 20px;
+    }
+
+    .welcome-icon-box {
+      width: 68px;
+      height: 68px;
+      margin: 0 auto 18px auto;
+      border-radius: var(--radius-lg);
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(6, 182, 212, 0.15) 100%);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.15);
+    }
+
+    .welcome h2 {
+      font-size: 25px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 10px;
+      color: #fff;
+    }
+
+    .welcome h2 span {
+      background: linear-gradient(90deg, #10b981, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .welcome p {
+      color: var(--text-muted);
+      font-size: 14px;
+      line-height: 1.6;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+
+    /* ===================== ANCHORED CHAT INPUT (INSIDE CHAT COLUMN) ===================== */
+    .chat-input-wrapper {
+      flex-shrink: 0;
+      padding: 12px 32px 14px 32px;
+      background: linear-gradient(180deg, rgba(7, 11, 18, 0) 0%, rgba(7, 11, 18, 0.95) 25%, #070b12 100%);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .input-area {
+      max-width: 940px;
+      width: 100%;
+      background: rgba(13, 20, 36, 0.92);
+      backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-xl);
+      padding: 8px 14px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+      transition: border-color 0.25s, box-shadow 0.25s;
+    }
+
+    .input-area:focus-within {
+      border-color: rgba(16, 185, 129, 0.6);
+      box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 0 3px rgba(16, 185, 129, 0.15);
+    }
+
+    .input-row {
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+
+    .question-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-size: 14.5px;
+      font-family: var(--font-sans);
+      padding: 8px 6px;
+      resize: none;
+      outline: none;
+      min-height: 40px;
+      max-height: 160px;
+      line-height: 1.5;
+    }
+
+    .question-input::placeholder {
+      color: #64748b;
+    }
+
+    .btn-send {
+      background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+      color: #041017;
+      border: none;
+      border-radius: var(--radius-md);
+      width: 40px;
+      height: 40px;
+      cursor: pointer;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+      font-weight: 800;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+    }
+
+    .btn-send:hover {
+      transform: scale(1.06);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+    }
+
+    .btn-send:active {
+      transform: scale(0.96);
+    }
+
+    .btn-send:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .input-hint {
+      margin-top: 6px;
+      font-size: 11px;
+      color: var(--text-dark);
+      text-align: center;
+    }
+
+    /* ===================== RESPONSIVE ===================== */
+    @media (max-width: 960px) {
+      .app-layout { flex-direction: column; height: calc(100vh - 64px); }
+      .sidebar { width: 100%; height: auto; max-height: 220px; border-right: none; border-bottom: 1px solid var(--border-subtle); }
+      .messages-container { padding: 16px; }
+      .chat-input-wrapper { padding: 10px 16px 12px 16px; }
+    }
+
+    @media (max-width: 600px) {
+      header { padding: 0 16px; height: 58px; }
+      .logo-title { font-size: 15px; }
+      .online-indicator span { display: none; }
+    }
+
+    /* ===================== SCROLLBAR ===================== */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.25); }
+  </style>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header>
+  <div class="logo">
+    <span class="logo-badge">UZEX</span>
+    <span class="logo-title">AI <span>Agent</span></span>
+  </div>
+  <div class="header-right">
+    <div class="online-indicator">
+      <div class="pulse-dot"></div>
+      <span>500,000 Bitimlar · Onlayn</span>
+    </div>
+    <div class="lang-pill">
+      🌐 O'zbekcha · Русский
+    </div>
+  </div>
+</header>
+
+<!-- ===================== MAIN LAYOUT ===================== -->
+<div class="app-layout">
+
+  <!-- SIDEBAR (INDEPENDENT COLUMN) -->
+  <aside class="sidebar">
+    <!-- Live Database Stats Card -->
+    <div class="card">
+      <div class="card-title">📊 Birja ma'lumotlari / Данные</div>
+      <div class="stats-grid">
+        <div class="stat-box">
+          <div class="stat-value primary" id="statDeals">500,000</div>
+          <div class="stat-label">Bitimlar / Сделок</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-value" id="statYears">5</div>
+          <div class="stat-label">Yillar / Годы</div>
+        </div>
+        <div class="stat-box" style="grid-column: span 2;">
+          <div class="stat-value" style="font-size:13px;color:#38bdf8" id="statRange">03.01.2022 — 30.10.2026</div>
+          <div class="stat-label">Davr / Период реестра</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dynamic Questions Suggestion Card -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div class="card-title" style="margin-bottom:0;">💡 Savollar / Примеры</div>
+        <button class="btn-refresh" onclick="renderRandomQuestions()" title="Yangi savollarni ko'rsatish / Показать другие">
+          🔄 Yangilash / Обновить
+        </button>
+      </div>
+      <ul class="example-list" id="dynamicQuestionsList">
+        <!-- Rendered dynamically via JavaScript -->
+      </ul>
+    </div>
+
+    <!-- Flexible Analytics Info Card -->
+    <div class="card" style="font-size:12px;line-height:1.55;color:var(--text-muted);">
+      <div class="card-title">🔍 Erkin tahlil / Анализ</div>
+      Istalgan viloyat, tovar, kompaniya yoki broker bo'yicha erkin savol bering.<br><br>
+      Задавайте любые вопросы по товарам, регионам, компаниям, ценам и брокерам.
+      <div class="chip-container">
+        <span class="chip">⚡ 14 viloyat</span>
+        <span class="chip">🏢 120 broker</span>
+        <span class="chip">📦 697 tovar</span>
+        <span class="chip">💵 USD kursi</span>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      UZEX AI Hackathon 2026<br>
+      500 000 bitim / сделок · spot.uzex.uz
+    </div>
+  </aside>
+
+  <!-- MAIN CHAT AREA (VERTICAL SPLIT: MESSAGES SCROLL + ANCHORED INPUT) -->
+  <main class="chat-area">
+    <!-- Messages Scroll Container -->
+    <div class="messages-container" id="messagesContainer">
+      <div class="messages" id="messages">
+        <div class="welcome" id="welcome">
+          <div class="welcome-icon-box">🏛️</div>
+          <h2>UZEX <span>AI Agent</span></h2>
+          <p>
+            Birja bitimlari haqida savol bering — o'zbek yoki rus tilida.<br>
+            Задайте вопрос о биржевых сделках на узбекском или русском.<br><br>
+            <span style="color:#34d399;font-weight:600;font-size:13px;">🌐 Javob savol tilidagidek bo'ladi · Ответ будет на языке вопроса</span>
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Anchored Input Bar (Locked at bottom of chat column, NEVER overlaps anything) -->
+    <div class="chat-input-wrapper">
+      <div class="input-area">
+        <div class="input-row">
+          <textarea
+            id="questionInput"
+            class="question-input"
+            placeholder="Savol yozing... / Задайте вопрос..."
+            rows="1"
+            onkeydown="handleKey(event)"
+            oninput="autoResize(this)"
+          ></textarea>
+          <button class="btn-send" id="sendBtn" onclick="sendQuestion()" title="Yuborish / Отправить">
+            ➤
+          </button>
+        </div>
+      </div>
+      <div class="input-hint">Enter — yuborish / отправить &nbsp;•&nbsp; Shift+Enter — yangi satr / перенос строки</div>
+    </div>
+  </main>
+</div>
+
+<script>
+  // ===================== STATE =====================
+  let isLoading = false;
+
+  // Rich, randomized pool of realistic questions
+  const QUESTION_POOL = [
+    { lang: 'uz', text: "Surxondaryoda 2026-yil eng ko'p qaysi mahsulot sotilgan?" },
+    { lang: 'uz', text: "2024-yilda eng yuqori summali 5 ta bitim qaysilar?" },
+    { lang: 'uz', text: "Qaysi viloyatda eng ko'p bitim tuzilgan?" },
+    { lang: 'uz', text: "2023-yilda nechta bitim bekor qilingan?" },
+    { lang: 'uz', text: "Samarqand viloyatida sement bo'yicha qancha bitim bor?" },
+    { lang: 'uz', text: "Paxta mahsulotlari bo'yicha umumiy savdo hajmi qancha?" },
+    { lang: 'uz', text: "2025-yilda eng faol brokerlik idoralari qaysilar?" },
+    { lang: 'uz', text: "Export shartnomalari bo'yicha jami summa qancha?" },
+    { lang: 'uz', text: "15.03.2024 sanasidagi dollar kursi qanday bo'lgan?" },
+    { lang: 'uz', text: "2024-yil avgust oyida shakar narxi qanday o'zgargan?" },
+    { lang: 'uz', text: "Navoiy viloyatida metall mahsulotlari savdosi qanday?" },
+    { lang: 'uz', text: "Eng yirik xaridor kompaniya qaysi?" },
+    { lang: 'uz', text: "Buxoro viloyatida neft-gaz mahsulotlari bo'yicha bitimlar?" },
+    { lang: 'uz', text: "2022-yildan 2026-yilgacha yillik savdo hajmi dinamikasi?" },
+    { lang: 'uz', text: "Andijon viloyatida 2025-yilda eng ko'p sotilgan tovar?" },
+    { lang: 'uz', text: "Bug'doy bo'yicha eng past va eng yuqori narxlar qanday bo'lgan?" },
+    { lang: 'ru', text: "Какие 5 товаров были самыми продаваемыми в 2024 году?" },
+    { lang: 'ru', text: "Какова динамика сделок по годам с 2022 по 2026 год?" },
+    { lang: 'ru', text: "Какие брокеры провели больше всего сделок в 2025 году?" },
+    { lang: 'ru', text: "Какой был официальный курс доллара 15.03.2024?" },
+    { lang: 'ru', text: "Сколько сделок исполнено полностью за всё время?" },
+    { lang: 'ru', text: "Какая компания является крупнейшим продавцом цемента?" },
+    { lang: 'ru', text: "Каков объем экспортных сделок в долларах США за 2023 год?" },
+    { lang: 'ru', text: "В каком регионе зарегистрировано больше всего сделок?" },
+    { lang: 'ru', text: "Какова средняя цена на дизельное топливо в 2024 году?" },
+    { lang: 'ru', text: "Сколько сделок было аннулировано из-за неуплаты?" },
+    { lang: 'ru', text: "Какие товары больше всего продавались в Сурхандарье в 2026 году?" },
+    { lang: 'ru', text: "Самая крупная единичная сделка по сумме за всю историю?" },
+    { lang: 'ru', text: "Какие сделки заключались в Ферганской области в 2025 году?" },
+    { lang: 'ru', text: "Какова доля спотовых контрактов по сравнению с форвардами?" }
+  ];
+
+  // ===================== INIT =====================
+  document.addEventListener('DOMContentLoaded', () => {
+    loadStatus();
+    renderRandomQuestions();
+  });
+
+  async function loadStatus() {
+    try {
+      const r = await fetch('/status');
+      const data = await r.json();
+      if (document.getElementById('statDeals')) {
+        document.getElementById('statDeals').textContent = Number(data.total_deals).toLocaleString('ru');
+      }
+      if (document.getElementById('statRange')) {
+        document.getElementById('statRange').textContent = data.date_range;
+      }
+    } catch (e) {
+      console.error('Status fetch error:', e);
+    }
+  }
+
+  function renderRandomQuestions() {
+    const list = document.getElementById('dynamicQuestionsList');
+    if (!list) return;
+
+    const uz = QUESTION_POOL.filter(q => q.lang === 'uz').sort(() => 0.5 - Math.random()).slice(0, 3);
+    const ru = QUESTION_POOL.filter(q => q.lang === 'ru').sort(() => 0.5 - Math.random()).slice(0, 2);
+    const selected = [...uz, ...ru].sort(() => 0.5 - Math.random());
+
+    list.innerHTML = selected.map(q => `
+      <li>
+        <button class="example-btn" onclick="useExampleText('${q.text.replace(/'/g, "\\'")}')">
+          <span class="lang-tag ${q.lang}">${q.lang.toUpperCase()}</span>${q.text}
+        </button>
+      </li>
+    `).join('');
+  }
+
+  function useExampleText(text) {
+    const input = document.getElementById('questionInput');
+    input.value = text;
+    input.focus();
+    autoResize(input);
+  }
+
+  // ===================== CHAT =====================
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendQuestion();
+    }
+  }
+
+  function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 160) + 'px';
+  }
+
+  function scrollToBottom() {
+    const container = document.getElementById('messagesContainer');
+    if (container) {
+      setTimeout(() => {
+        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+      }, 50);
+    }
+  }
+
+  function addMessage(role, content) {
+    const welcome = document.getElementById('welcome');
+    if (welcome) welcome.remove();
+
+    const messages = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = `message ${role}`;
+
+    const isBot = role === 'bot';
+    let renderedContent = '';
+    if (isBot && typeof marked !== 'undefined') {
+      try {
+        renderedContent = marked.parse(content);
+      } catch (e) {
+        renderedContent = escapeHtml(content);
+      }
+    } else {
+      renderedContent = escapeHtml(content);
+    }
+
+    div.innerHTML = `
+      <div class="msg-avatar ${role}">${isBot ? '🤖' : '👤'}</div>
+      <div class="msg-bubble">
+        <div class="msg-name">${isBot ? 'UZEX AI Agent' : 'Foydalanuvchi / Пользователь'}</div>
+        <div class="msg-content">${renderedContent}</div>
+      </div>
+    `;
+    messages.appendChild(div);
+    scrollToBottom();
+    return div;
+  }
+
+  function addTyping() {
+    const welcome = document.getElementById('welcome');
+    if (welcome) welcome.remove();
+
+    const messages = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = 'message bot';
+    div.id = 'typingMsg';
+    div.innerHTML = `
+      <div class="msg-avatar bot">🤖</div>
+      <div class="msg-bubble">
+        <div class="msg-name">UZEX AI Agent</div>
+        <div class="typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <span style="font-size:12.5px;color:var(--text-muted);margin-left:8px;font-weight:500;">Ma'lumot tahlil qilinmoqda / Анализируем данные...</span>
+        </div>
+      </div>
+    `;
+    messages.appendChild(div);
+    scrollToBottom();
+    return div;
+  }
+
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\n/g, '<br>');
+  }
+
+  async function sendQuestion() {
+    if (isLoading) return;
+    const input = document.getElementById('questionInput');
+    const question = input.value.trim();
+    if (!question) return;
+
+    input.value = '';
+    autoResize(input);
+    isLoading = true;
+    document.getElementById('sendBtn').disabled = true;
+
+    addMessage('user', question);
+    const typingEl = addTyping();
+
+    try {
+      const r = await fetch('/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ question }),
+      });
+
+      typingEl.remove();
+
+      if (!r.ok) {
+        const err = await r.json();
+        addMessage('bot', `❌ Xatolik: ${err.detail || 'Noma\'lum xato / Неизвестная ошибка'}`);
+      } else {
+        const data = await r.json();
+        addMessage('bot', data.answer);
+      }
+    } catch (e) {
+      typingEl.remove();
+      addMessage('bot', '❌ Server bilan bog\'lanib bo\'lmadi / Не удалось подключиться к серверу.');
+    } finally {
+      isLoading = false;
+      document.getElementById('sendBtn').disabled = false;
+      input.focus();
+    }
+  }
+</script>
+</body>
+</html>
