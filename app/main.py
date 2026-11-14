@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-_FALLBACK_KEY_B64 = "c2stcHJvai1SY0tFVVppRXpEVlFjUlFNUXJfWUxuelNIY2VKSlFMWWpXYTZJbzJyd2tWVlhBOXUtYmpmNGJpMTR1VkhWeTd6eFR1MTNkLVYtQ1QzQmxia0ZKbGIwNzMzQkE3Q1RLazZtOTBNUVk1OUpoSTVmRlo1OFVucE5GOGYyb3dFQ0NCdXdueExQMWd4bE5ELVc5LUo1cXR0a2tqaXZsRUE="
+# Fallback key removed for security; rely on VERCEL environment variable OPENAI_API_KEY
 
 # Global API key from environment / .env / fallback
 _api_key: str = os.environ.get("OPENAI_API_KEY", "")

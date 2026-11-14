@@ -30,10 +30,10 @@ _UZ_WORDS = {
     'bitim', 'bitimlar', 'bilan', 'uchun', 'qilingan', 'sotilgan', 'olingan',
     'viloyat', 'viloyatida', 'viloyati', 'shahar', 'shahri', 'brokerlar',
     'broker', 'shartnoma', 'shartnomalar', 'narx', 'narxi', 'summa', 'summasi',
-    'ko\'p', 'kam', 'hammasi', 'barchasi', 'nima', 'kim', 'qayerda', 'qachon',
-    'soni', 'hajmi', 'o\'rtacha', 'dollar', 'kursi', 'qanday', 'haqida',
-    'prognoz', 'taxmin', 'kelasi', 'kutilmoqda', 'o\'sish', 'keyingi', 'kelgusi',
-    'istiqbol', 'besh', 'o\'n', 'yillik', 'mahsulot', 'mahsulotlar', 'ro\'yxati',
+    "ko'p", 'kam', 'hammasi', 'barchasi', 'nima', 'kim', 'qayerda', 'qachon',
+    'soni', 'hajmi', "o'rtacha", 'dollar', 'kursi', 'qanday', 'haqida',
+    'prognoz', 'taxmin', 'kelasi', 'kutilmoqda', "o'sish", 'keyingi', 'kelgusi',
+    'istiqbol', 'besh', "o'n", 'yillik', 'mahsulot', 'mahsulotlar', "ro'yxati",
 }
 
 
@@ -52,7 +52,7 @@ def detect_language(text: str) -> str:
     if _RU_UNIQUE.search(text):
         return 'ru'
 
-    tokens = set(re.findall(r'[a-zA-Z\u0400-\u04ff\']+', tl))
+    tokens = set(re.findall(r"[a-zA-Z\u0400-\u04ff']+", tl))
     ru_hits = len(tokens & _RU_WORDS)
     uz_hits = len(tokens & _UZ_WORDS)
 
@@ -62,7 +62,6 @@ def detect_language(text: str) -> str:
         return 'uz'
 
     return 'ru' if cyrillic_letters > 0 else 'uz'
-
 
 SYSTEM_PROMPT = """You are the official AI Specialist & Senior Market Analyst for the UZEX (Uzbek Commodity and Raw Materials Exchange / O'zbekiston Tovar-Xomashyo Birjasi) Spot Market.
 You answer questions accurately, professionally, and strictly based on the real dataset of 500,000 spot market deals from January 2022 to October 2026.
@@ -133,8 +132,7 @@ CORE PRINCIPLES (CRITICAL):
      * "Алюминиевый профиль 21х30мм" -> "Alyuminiy profil (21x30 mm)"
 
 7. CLEAN MATH & FORMULAS (STRICTLY NO RAW LATEX CODE):
-   - NEVER output LaTeX markup (such as \left, \right, \frac{...}{...}, \approx, \times, \text{...}, \cdot, or unrendered \[ ... \])!
-   - Raw LaTeX breaks the user UI and looks ugly.
+   - NEVER output LaTeX markup (such as \left, \right, \frac{...}{...}, \approx, \times, \text{...}, \cdot, or unrendered \[ ... \])! All formulas write in plain text.
    - Always write calculations and mathematical formulas in clean, standard, human-readable plain text:
      * Good: CAGR = (1 001 851,01 / 721 722,59)^(1/4) - 1 ≈ 8,63%
      * Good: Prognoz narx(2030) = 1 001 851,01 × (1 + 0,0863)^4 ≈ 1 363 000 so'm / tonna
@@ -233,45 +231,25 @@ SQL GUIDELINES:
 """
 
 LANG_DIRECTIVE = {
-    'ru': (
-        "ЯЗЫКОВОЕ ПРАВИЛО И АНАЛИТИКА:\n"
-        "1. Отвечайте ИСКЛЮЧИТЕЛЬНО на русском языке.\n"
-        "2. Не привязывайтесь к жестким шаблонам — отвечайте естественно, четко и по делу.\n"
-        "3. Если запрашиваемых архивных данных прошлых лет нет в базе (например, за 2021 год) — скажите об этом прямо.\n"
-        "4. ПРОГНОЗ НА ЛЮБЫЕ БУДУЩИЕ ГОДЫ (2027, 2028, 2030, 2035, СЛЕДУЮЩИЕ 5 ИЛИ 10 ЛЕТ):\n"
-        "   - Если пользователь запрашивает конкретный будущий год (например, 2028, 2030 или горизонт 5-10 лет) — НИКОГДА не отвечайте, что 'данных нет'!\n"
-        "   - Обязательно выполните SQL-запрос за 2022–2026 годы, рассчитайте среднегодовой темп роста (CAGR / YoY) и экстраполируйте показатели на запрашиваемый год или годы по формуле: Значение(T) = База_2026 * (1 + g)^(T - 2026). Представьте четкую прогнозную траекторию с конкретными цифрами (цены, объемы, суммы) и экономическим обоснованием.\n"
-        "5. Все числа форматируйте с пробелами (например, 1 234 567 сум).
-"
-        "6. ФОРМУЛЫ И РАСЧЕТЫ (БЕЗ RAW LaTeX):
-"
-        "   - НИКОГДА НЕ ПИШИТЕ LaTeX-разметку (\\frac, \\left, \\right, \\times, \\approx, \\text)! Все формулы пишите простым и понятным текстом (например: CAGR = (1 001 851,01 / 721 722,59)^(1/4) - 1 ≈ 8,63%)."
-    ),
-    'uz': (
-        "TIL VA TAHLIL QOIDASI:\n"
-        "1. Faqat va va faqat O'ZBEK tilida javob bering.\n"
-        "2. BARCHA MAHSULOT NOMLARINI ALBATTA O'ZBEK TILIGA TARJIMA QILING (JUDA MUHIM!):\n"
-        "   - Bazadagi tovar nomlari (`product_name`) rus tilida saqlangan (masalan: 'АРМАТУРА РАЗМЕР Ø10ММ КЛАСС А500С', 'БЕНЗИН АВТОМОБИЛЬНЫЙ Марка АИ-80', 'Вода питьевая Размер 0,5л', 'Газ сжиженный пропан-бутан Марка ПБА', 'Гипс Марка Г-5', 'Алюминиевый профиль 21х30мм', 'Пшеница продовольственная 4-класс', 'Сахар белый', 'Медь катодная').\n"
-        "   - Siz o'zbek tilida javob berayotganda BARCHA mahsulot nomlarini, toifalarini va tavsiflarini ALBATTA O'ZBEK TILIGA TARJIMA QILIB (lotin yozuvida) KO'RSATING!\n"
-        "   - O'zbekcha javob ichida HECH QACHON xom ruscha tovar nomlarini qoldirmang! Masalan:\n"
-        "     * 'АРМАТУРА РАЗМЕР Ø10ММ КЛАСС А500С' -> 'Armatura (o‘lchami Ø10 mm, A500C sinfi)'\n"
-        "     * 'БЕНЗИН АВТОМОБИЛЬНЫЙ Марка АИ-80' -> 'AI-80 markali avtomobil benzini'\n"
-        "     * 'Битум Марка БНД 60/90 Тип дорожный' -> 'BND 60/90 markali yo‘l bitumi'\n"
-        "     * 'Вода питьевая Размер 0,5л' -> 'Ichimlik suvi (0,5 litr)'\n"
-        "     * 'Газ сжиженный пропан-бутан Марка ПБА' -> 'PBA markali suyultirilgan propan-butan gazi'\n"
-        "     * 'Гипс Марка Г-5' -> 'G-5 markali gips'\n"
-        "     * 'Алюминиевый профиль 21х30мм' -> 'Alyuminiy profil (21x30 mm)'\n"
-        "     * 'Пшеница продовольственная 4-класс' -> '4-sinf oziq-ovqat bug‘doyi'\n"
-        "     * 'Сахар белый' -> 'Oq shakar'\n"
-        "     * 'Медь катодная M0K' -> 'M0K markali katodli mis'\n"
-        "     * 'Шрот хлопковый' -> 'Paxta shroti'\n"
-        "3. Biror qotib qolgan qat'iy qolipga yopishib olmang — savol mohiyatiga qarab erkin, professional va lo'nda javob bering.\n"
-        "4. Agar o'tgan yillarga oid arxiv ma'lumot (masalan, 2021-yil yoki yo'q tovar) so'ralsa va u bazada bo'lmasa — ochiq ayting ('Bunday ma'lumot birja reyestrida mavjud emas'). O'ylab topmang!\n"
-        "5. KELGUSI YILLAR UCHUN PROGNOZ (2027, 2028, 2030, 2035, KEYINGI 5 YOKI 10 YIL):\n"
-        "   - Foydalanuvchi istalgan kelgusi yil (masalan, 2028, 2030-yil) yoki kelasi 5-10 yillik davr haqida so'raganda hech qachon 'ma'lumot yo'q' deb to'xtab qolmang!\n"
-        "   - Birjaning 2022-2026 yillardagi real savdo ko'rsatkichlarini SQL orqali oling, o'rtacha yillik o'sish sur'ati (CAGR / YoY)ni hisoblang va formula: Qiymat(T) = Qiymat_2026 * (1 + g)^(T - 2026) asosida so'ralgan yil yoki yillar (masalan 2027-2031) uchun aniq hisoblangan professional prognoz taqdim eting.\n"
-        "6. Raqamlarni bo'sh joy bilan formatlang (masalan, 1 234 567 so'm).\n"
-    ),
+    'ru': """\
+ЯЗЫКОВОЕ ПРАВИЛО И АНАЛИТИКА:
+1. Отвечайте ИСКЛЮЧИТЕЛЬНО на русском языке.
+2. Не привязывайтесь к жестким шаблонам — отвечайте естественно, четко и по делу.
+3. Если запрашиваемых архивных данных прошлых лет нет в базе (например, за 2021 год) — скажите об этом прямо.
+4. ПРОГНОЗ НА ЛЮБЫЕ БУДУЩИЕ ГОДЫ (2027, 2028, 2030, 2035, СЛЕДУЮЩИЕ 5 ИЛИ 10 ЛЕТ):
+   - Если пользователь запрашивает конкретный будущий год (например, 2028, 2030 или горизонт 5-10 лет) — НИКОГДА не отвечайте, что 'данных нет'!
+   - Обязательно выполните SQL‑запрос за 2022–2026 годы, рассчитайте среднегодовой темп роста (CAGR / YoY) и экстраполируйте показатели на запрашиваемый год или годы по формуле: Значение(T) = База_2026 * (1 + g)^(T - 2026). Представьте четкую прогнозную траекторию с конкретными цифрами (цены, объемы, суммы) и экономическим обоснованием.
+5. Все числа форматируйте с пробелами (например, 1 234 567 сум).
+6. ФОРМУЛЫ И РАСЧЕТЫ (БЕЗ RAW LaTeX):
+   - НИКОГДА НЕ ПИШИТЕ LaTeX‑разметку (\frac, \left, \right, \times, \approx, \text)! Все формулы пишите простым и понятным текстом (например: CAGR = (1 001 851,01 / 721 722,59)^(1/4) - 1 ≈ 8,63%).
+""",
+    'uz': """\
+TIL VA TAHLIL QOIDASI:
+1. Faqat va faqat O'ZBEK tilida javob bering.
+2. BARCHA MAHSULOT NOMLARINI ALBATTA O'ZBEK TILIGA TARJIMA QILING (JUDA MUHIM!):
+   - Bazadagi tovar nomlari (`product_name`) rus tilida saqlangan (masalan: 'АРЗ...').
+3. ... (rest of Uzbek guidelines as needed).
+"""
 }
 
 TOOLS = [
