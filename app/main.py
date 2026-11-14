@@ -2,7 +2,6 @@
 FastAPI application for UZEX AI Agent web service.
 """
 import os
-import base64
 import logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
@@ -22,15 +21,8 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-# Fallback key removed for security; rely on VERCEL environment variable OPENAI_API_KEY
-
-# Global API key from environment / .env / fallback
+# Global API key from environment only (no hardcoded fallback)
 _api_key: str = os.environ.get("OPENAI_API_KEY", "")
-if not _api_key:
-    try:
-        _api_key = base64.b64decode(_FALLBACK_KEY_B64).decode("utf-8")
-    except Exception:
-        pass
 
 _model: str = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 
