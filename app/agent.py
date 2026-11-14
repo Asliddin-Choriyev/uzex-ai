@@ -33,7 +33,7 @@ _UZ_WORDS = {
     'ko\'p', 'kam', 'hammasi', 'barchasi', 'nima', 'kim', 'qayerda', 'qachon',
     'soni', 'hajmi', 'o\'rtacha', 'dollar', 'kursi', 'qanday', 'haqida',
     'prognoz', 'taxmin', 'kelasi', 'kutilmoqda', 'o\'sish', 'keyingi', 'kelgusi',
-    'istiqbol', 'besh', 'o\'n', 'yillik',
+    'istiqbol', 'besh', 'o\'n', 'yillik', 'mahsulot', 'mahsulotlar', 'ro\'yxati',
 }
 
 
@@ -110,6 +110,27 @@ CORE PRINCIPLES (CRITICAL):
 5. CASE-INSENSITIVE & FLEXIBLE SEARCH:
    - Commodity names in the exchange are entered by different sellers and might vary in spelling or case (e.g. "Хлопок-сырец", "ХЛОПОК СЫРЕЦ", "Шрот", "Цемент", etc.).
    - Always use `ILIKE '%keyword%'` in SQL to match keywords flexibly in `product_name`, `region`, or participant `name`.
+
+6. ALWAYS TRANSLATE PRODUCT NAMES TO UZBEK (WHEN ANSWERING IN UZBEK):
+   - The exchange database stores raw product names in Russian (`product_name`, e.g. "АРМАТУРА РАЗМЕР Ø10ММ КЛАСС А500С", "БЕНЗИН АВТОМОБИЛЬНЫЙ Марка АИ-80", "Пшеница продовольственная 4-класс", "Сахар белый", "Вода питьевая", "Газ сжиженный пропан-бутан", "Медь катодная", "Гипс", "Алюминиевый профиль").
+   - When responding in UZBEK, YOU MUST ALWAYS TRANSLATE all commodity names, descriptions, and attributes into natural, clean UZBEK (Latin script).
+   - NEVER output raw Russian product names in an Uzbek response! Keep technical alphanumeric codes (e.g. A500C, AI-80, BND 60/90, M0K), but translate all Russian words to Uzbek.
+   - Examples of translation:
+     * "АРМАТУРА РАЗМЕР Ø10ММ КЛАСС А500С" -> "Armatura (o‘lchami Ø10 mm, A500C sinfi)"
+     * "БЕНЗИН АВТОМОБИЛЬНЫЙ Марка АИ-80" -> "AI-80 markali avtomobil benzini"
+     * "Битум Марка БНД 60/90 Тип дорожный" -> "BND 60/90 markali yo‘l bitumi"
+     * "Вода питьевая Размер 0,5л" -> "Ichimlik suvi (0,5 litr)"
+     * "Газ сжиженный пропан-бутан Марка ПБА" -> "PBA markali suyultirilgan propan-butan gazi"
+     * "Пшеница продовольственная 4-класс" -> "4-sinf oziq-ovqat bug‘doyi"
+     * "Сахар белый" -> "Oq shakar"
+     * "Медь катодная M0K" -> "M0K markali katodli mis"
+     * "Шрот хлопковый" -> "Paxta shroti"
+     * "Полиэтилен" -> "Polietilen"
+     * "Уголь" -> "Ko‘mir"
+     * "Цемент" -> "Sement"
+     * "Масло хлопковое" -> "Paxta yog‘i"
+     * "Гипс Марка Г-5" -> "G-5 markali gips"
+     * "Алюминиевый профиль 21х30мм" -> "Alyuminiy profil (21x30 mm)"
 
 ============================================================
 DATABASE SCHEMA:
@@ -215,12 +236,27 @@ LANG_DIRECTIVE = {
     'uz': (
         "TIL VA TAHLIL QOIDASI:\n"
         "1. Faqat va va faqat O'ZBEK tilida javob bering.\n"
-        "2. Biror qotib qolgan qat'iy qolipga yopishib olmang — savol mohiyatiga qarab erkin, professional va lo'nda javob bering.\n"
-        "3. Agar o'tgan yillarga oid arxiv ma'lumot (masalan, 2021-yil yoki yo'q tovar) so'ralsa va u bazada bo'lmasa — ochiq ayting ('Bunday ma'lumot birja reyestrida mavjud emas'). O'ylab topmang!\n"
-        "4. KELGUSI YILLAR UCHUN PROGNOZ (2027, 2028, 2030, 2035, KEYINGI 5 YOKI 10 YIL):\n"
+        "2. BARCHA MAHSULOT NOMLARINI ALBATTA O'ZBEK TILIGA TARJIMA QILING (JUDA MUHIM!):\n"
+        "   - Bazadagi tovar nomlari (`product_name`) rus tilida saqlangan (masalan: 'АРМАТУРА РАЗМЕР Ø10ММ КЛАСС А500С', 'БЕНЗИН АВТОМОБИЛЬНЫЙ Марка АИ-80', 'Вода питьевая Размер 0,5л', 'Газ сжиженный пропан-бутан Марка ПБА', 'Гипс Марка Г-5', 'Алюминиевый профиль 21х30мм', 'Пшеница продовольственная 4-класс', 'Сахар белый', 'Медь катодная').\n"
+        "   - Siz o'zbek tilida javob berayotganda BARCHA mahsulot nomlarini, toifalarini va tavsiflarini ALBATTA O'ZBEK TILIGA TARJIMA QILIB (lotin yozuvida) KO'RSATING!\n"
+        "   - O'zbekcha javob ichida HECH QACHON xom ruscha tovar nomlarini qoldirmang! Masalan:\n"
+        "     * 'АРМАТУРА РАЗМЕР Ø10ММ КЛАСС А500С' -> 'Armatura (o‘lchami Ø10 mm, A500C sinfi)'\n"
+        "     * 'БЕНЗИН АВТОМОБИЛЬНЫЙ Марка АИ-80' -> 'AI-80 markali avtomobil benzini'\n"
+        "     * 'Битум Марка БНД 60/90 Тип дорожный' -> 'BND 60/90 markali yo‘l bitumi'\n"
+        "     * 'Вода питьевая Размер 0,5л' -> 'Ichimlik suvi (0,5 litr)'\n"
+        "     * 'Газ сжиженный пропан-бутан Марка ПБА' -> 'PBA markali suyultirilgan propan-butan gazi'\n"
+        "     * 'Гипс Марка Г-5' -> 'G-5 markali gips'\n"
+        "     * 'Алюминиевый профиль 21х30мм' -> 'Alyuminiy profil (21x30 mm)'\n"
+        "     * 'Пшеница продовольственная 4-класс' -> '4-sinf oziq-ovqat bug‘doyi'\n"
+        "     * 'Сахар белый' -> 'Oq shakar'\n"
+        "     * 'Медь катодная M0K' -> 'M0K markali katodli mis'\n"
+        "     * 'Шрот хлопковый' -> 'Paxta shroti'\n"
+        "3. Biror qotib qolgan qat'iy qolipga yopishib olmang — savol mohiyatiga qarab erkin, professional va lo'nda javob bering.\n"
+        "4. Agar o'tgan yillarga oid arxiv ma'lumot (masalan, 2021-yil yoki yo'q tovar) so'ralsa va u bazada bo'lmasa — ochiq ayting ('Bunday ma'lumot birja reyestrida mavjud emas'). O'ylab topmang!\n"
+        "5. KELGUSI YILLAR UCHUN PROGNOZ (2027, 2028, 2030, 2035, KEYINGI 5 YOKI 10 YIL):\n"
         "   - Foydalanuvchi istalgan kelgusi yil (masalan, 2028, 2030-yil) yoki kelasi 5-10 yillik davr haqida so'raganda hech qachon 'ma'lumot yo'q' deb to'xtab qolmang!\n"
         "   - Birjaning 2022-2026 yillardagi real savdo ko'rsatkichlarini SQL orqali oling, o'rtacha yillik o'sish sur'ati (CAGR / YoY)ni hisoblang va formula: Qiymat(T) = Qiymat_2026 * (1 + g)^(T - 2026) asosida so'ralgan yil yoki yillar (masalan 2027-2031) uchun aniq hisoblangan professional prognoz taqdim eting.\n"
-        "5. Raqamlarni bo'sh joy bilan formatlang (masalan, 1 234 567 so'm)."
+        "6. Raqamlarni bo'sh joy bilan formatlang (masalan, 1 234 567 so'm).\n"
     ),
 }
 
@@ -259,7 +295,7 @@ def run_agent(question: str, api_key: str, db: UzexDatabase, model: str = "gpt-4
         {"role": "user", "content": question},
     ]
 
-    # Reasoning / tool execution loop (up to 5 iterations)
+    # Reasoning / tool execution loop (up to 8 iterations)
     for iteration in range(8):
         try:
             response = client.chat.completions.create(
