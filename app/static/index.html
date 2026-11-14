@@ -10,6 +10,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 
   <style>
     /* ===================== DESIGN TOKENS ===================== */
@@ -920,6 +922,37 @@
     }
   }
 
+  function cleanMath(text) {
+    if (!text) return '';
+    let s = text;
+    // 1. Clean subscripts first: Value_{2026} -> Value (2026)
+    s = s.replace(/([A-Za-z]+)_\{?(\d{4})\}?/g, '$1 ($2)');
+    // 2. Fractions: \frac{a}{b} -> (a / b) (handle up to 4 passes for nested fractions)
+    for (let i = 0; i < 4; i++) {
+      s = s.replace(/\\frac\s*\{([^{}]+)\}\s*\{([^{}]+)\}/g, '($1 / $2)');
+    }
+    // 3. Clean superscripts: ^{4} -> ^4, ^{(1 / 4)} -> ^(1 / 4)
+    s = s.replace(/\^\{([^}]+)\}/g, '^$1');
+    // 4. \text{...} -> ...
+    s = s.replace(/\\text\s*\{([^}]+)\}/g, '$1');
+    // 5. Common symbols
+    s = s.replace(/\\times/g, '×');
+    s = s.replace(/\\approx/g, '≈');
+    s = s.replace(/\\cdot/g, '·');
+    s = s.replace(/\\le(q)?\b/g, '≤');
+    s = s.replace(/\\ge(q)?\b/g, '≥');
+    s = s.replace(/\\neq/g, '≠');
+    s = s.replace(/\\pm/g, '±');
+    // 6. Remove \left and \right
+    s = s.replace(/\\left|\\right/g, '');
+    // 7. Remove bracket wrappers around formulas: [ formula = ... ] -> formula = ...
+    s = s.replace(/\[\s*([A-Za-z_]+(?:\([^)]*\))?\s*=\s*[^\]]+?)\s*\]/g, '$1');
+    s = s.replace(/^\s*\[\s*([^\]]+?)\s*\]\s*$/gm, '$1');
+    // 8. Remove dangling \[ and \]
+    s = s.replace(/\\\[|\\\]/g, '');
+    return s;
+  }
+
   function addMessage(role, content) {
     const welcome = document.getElementById('welcome');
     if (welcome) welcome.remove();
@@ -929,15 +962,16 @@
     div.className = `message ${role}`;
 
     const isBot = role === 'bot';
+    const cleanContent = isBot ? cleanMath(content) : content;
     let renderedContent = '';
     if (isBot && typeof marked !== 'undefined') {
       try {
-        renderedContent = marked.parse(content);
+        renderedContent = marked.parse(cleanContent);
       } catch (e) {
-        renderedContent = escapeHtml(content);
+        renderedContent = escapeHtml(cleanContent);
       }
     } else {
-      renderedContent = escapeHtml(content);
+      renderedContent = escapeHtml(cleanContent);
     }
 
     div.innerHTML = `
