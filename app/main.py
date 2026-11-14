@@ -21,10 +21,15 @@ logger = logging.getLogger(__name__)
 load_dotenv()
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-# Global API key from environment only (no hardcoded fallback)
-_api_key: str = os.environ.get("OPENAI_API_KEY", "")
-
+# Model config (read once at startup is fine for model name)
 _model: str = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+
+# _api_key is intentionally NOT cached at module load time.
+# Vercel injects env vars before each function invocation, so we
+# read it fresh inside every request handler to be safe.
+def _get_api_key() -> str:
+    """Return the OpenAI API key from environment (checked fresh each call)."""
+    return os.environ.get("OPENAI_API_KEY", "")
 
 
 @asynccontextmanager
@@ -87,10 +92,12 @@ async def root():
 
 @app.post("/configure")
 async def configure(req: ConfigureRequest):
-    """Set the OpenAI API key and model."""
-    global _api_key, _model
-    _api_key = req.api_key.strip()
+    """Set the OpenAI API key and model (overrides env var for this process)."""
+    global _model
+    # Store in environment so _get_api_key() picks it up
+    os.environ["OPENAI_API_KEY"] = req.api_key.strip()
     _model = req.model.strip() or "gpt-4o-mini"
+    os.environ["OPENAI_MODEL"] = _model
     return {"ok": True, "model": _model}
 
 
@@ -100,7 +107,7 @@ async def status():
     stats = db.get_summary_stats()
     return StatusResponse(
         status="ready",
-        configured=bool(_api_key),
+        configured=bool(_get_api_key()),
         model=_model,
         total_deals=stats["total_deals"],
         date_range=stats["date_range"],
@@ -110,10 +117,11 @@ async def status():
 @app.post("/ask", response_model=AnswerResponse)
 async def ask(req: QuestionRequest):
     """Main endpoint: answer a question about UZEX deals."""
-    if not _api_key:
+    api_key = _get_api_key()
+    if not api_key:
         raise HTTPException(
             status_code=400,
-            detail="OpenAI API key not configured.",
+            detail="OpenAI API key not configured. Set OPENAI_API_KEY environment variable in Vercel.",
         )
     if not req.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
@@ -122,7 +130,7 @@ async def ask(req: QuestionRequest):
     try:
         answer = run_agent(
             question=req.question.strip(),
-            api_key=_api_key,
+            api_key=api_key,
             db=db,
             model=_model,
         )
