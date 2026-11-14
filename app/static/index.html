@@ -758,7 +758,7 @@
         <span class="chip">🏢 120 broker</span>
         <span class="chip">📦 697 tovar</span>
         <span class="chip">💵 USD kursi</span>
-        <span class="chip" style="background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.4);color:#34d399;">📈 2027 Prognoz / Прогноз</span>
+        <span class="chip" style="background:rgba(16,185,129,0.15);border-color:rgba(16,185,129,0.4);color:#34d399;">📈 Kelgusi yillar prognozi (5-10 yil) / Прогноз</span>
       </div>
     </div>
 
@@ -813,12 +813,14 @@
 
   // Rich, randomized pool of realistic questions
   const QUESTION_POOL = [
+    { lang: 'uz', text: "2030-yilda sement narxi qanday bo'lishi kutilmoqda (o'tgan yillar dinamikasi asosida)?" },
+    { lang: 'uz', text: "Keyingi 5 yil (2027–2031) uchun birja savdo hajmini prognoz qiling." },
+    { lang: 'uz', text: "2028-yilda shakar narxi va umumiy savdosi qanday bo'lishi mumkin?" },
     { lang: 'uz', text: "O'tgan yillardagi savdolar asosida 2027-yilda sement narxi qanday bo'lishi kutilmoqda?" },
-    { lang: 'uz', text: "2027-yilda birjaning umumiy savdo aylanmasi va hajmini prognoz qiling." },
-    { lang: 'uz', text: "Kelasi yilda qaysi tovarlar narxi va talabi eng yuqori bo'lishi taxmin qilinadi?" },
-    { lang: 'ru', text: "Спрогнозируйте среднюю цену на цемент в 2027 году на основе динамики 2022–2026 годов." },
-    { lang: 'ru', text: "Каков прогноз общего объема торгов на бирже на 2027 год?" },
-    { lang: 'ru', text: "Какие товары, судя по трендам прошлых лет, покажут наибольший рост в следующем году?" },
+    { lang: 'ru', text: "Спрогнозируйте среднюю цену на цемент к 2030 году на основе динамики 2022–2026 годов." },
+    { lang: 'ru', text: "Каков прогноз общего объема торгов на бирже на следующие 5 лет (2027–2031)?" },
+    { lang: 'ru', text: "Какой будет ожидаемая цена на сахар в 2028 году?" },
+    { lang: 'ru', text: "Каков прогноз объема торгов на бирже на 2027 год?" },
     { lang: 'uz', text: "Surxondaryoda 2026-yil eng ko'p qaysi mahsulot sotilgan?" },
     { lang: 'uz', text: "2024-yilda eng yuqori summali 5 ta bitim qaysilar?" },
     { lang: 'uz', text: "Qaysi viloyatda eng ko'p bitim tuzilgan?" },
